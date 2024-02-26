@@ -1,4 +1,6 @@
 {
-  "SwitchedToSpec": "Zostałeś przeniesiony do obserwatorów. Jeśli posiadasz aktywną rangę \u0004VIP\u0001 skorzystaj z komendy \u0006!slot\u0001, aby zwolnić grające miejsce.",
-  "VipIsNeeded": "Musisz posiadać aktywną rangę \u0004VIP\u0001,aby zwolnić sobię grające miejsce. Kupisz go na \u0003https://hsownia.sklepcs.pl"
+  "VipIsNeeded": "Musisz posiadać aktywną rangę \u0004VIP\u0001,aby zwolnić sobię grające miejsce. Kupisz go na \u0003https://hsownia.sklepcs.pl",
+  "NotFull": " \u0007Serwer nie jest pełny, dlaczego chcesz zwolnić grające miejsce?",
+  "SpectatorsOnly": " \u0007Tylko obserwujący mają dostęp do tej funkcji.",
+  "SwitchedToSpec": "Zostałeś przeniesiony do obserwatorów. Jeśli posiadasz aktywną rangę \u0004VIP\u0001 skorzystaj z komendy \u0006!slot\u0001, aby zwolnić grające miejsce."
 }

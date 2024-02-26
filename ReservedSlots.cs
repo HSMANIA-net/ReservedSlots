@@ -25,13 +25,20 @@ public class ReservedSlots : BasePlugin
     {
         if (player == null)
             return;
-
-        if (GetPlayersCount() <= MaxPlayers)
-            return;
-
+        
         if (!AdminManager.PlayerHasPermissions(player, "@css/vip"))
         {
             player.PrintToChat(Localizer["VipIsNeeded"]);
+        }
+        
+        if (GetPlayersCount() <= MaxPlayers) {
+            player.PrintToChat(Localizer["NotFull"]);
+            return;
+        }
+
+        if (player.TeamNum != 1) {
+            player.PrintToChat(Localizer["SpectatorsOnly"]);
+            return;
         }
 
         var kickedPlayer = GetPlayerToKick(player);
