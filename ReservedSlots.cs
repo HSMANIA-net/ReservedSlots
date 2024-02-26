@@ -29,6 +29,7 @@ public class ReservedSlots : BasePlugin
         if (!AdminManager.PlayerHasPermissions(player, "@css/vip"))
         {
             player.PrintToChat(Localizer["VipIsNeeded"]);
+            return;
         }
         
         if (GetPlayersCount() <= MaxPlayers) {
