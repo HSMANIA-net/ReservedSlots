@@ -2,5 +2,8 @@
   "VipIsNeeded": "Musisz posiadać aktywną rangę \u0004VIP\u0001,aby zwolnić sobię grające miejsce. Kupisz go na \u0003https://hsownia.sklepcs.pl",
   "NotFull": " \u0007Serwer nie jest pełny, dlaczego chcesz zwolnić grające miejsce?",
   "SpectatorsOnly": " \u0007Tylko obserwujący mają dostęp do tej funkcji.",
-  "SwitchedToSpec": "Zostałeś przeniesiony do obserwatorów. Jeśli posiadasz aktywną rangę \u0004VIP\u0001 skorzystaj z komendy \u0006!slot\u0001, aby zwolnić grające miejsce."
+  "SwitchedToSpec": "Zostałeś przeniesiony do obserwatorów. Jeśli posiadasz aktywną rangę \u0004VIP\u0001 skorzystaj z komendy \u0006!slot\u0001, aby zwolnić grające miejsce.",
+  "WillFreeSpace": " \u0007{0} zwolni grające miejsce z końcem obecnej rundy, dziękujemy że wspierasz nasz projekt!",
+  "WillBeKicked": " \u0007Zostaniesz wyrzucony wraz z końcem tej rundy, aby zwolnić grające miejsce dla gracza VIP.\u2029Wesprzyj nasze serwery, aby w przyszłości uchronić się przed wyrzuceniem!\u2029https://hsownia.sklepcs.pl",
+  "Saved": " \u0007Gracz {0} opuścił serwer i uchronił cię przed wyrzuceniem.\u2029Uchroń się przed wyrzuceniami wspierając nasze serwery!\u2029https://hsownia.sklepcs.pl"
 }

@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
@@ -10,13 +10,25 @@ using Microsoft.Extensions.Localization;
 
 namespace ReservedSlots;
 
+public class ReservedQueueInfo
+{
+    public CCSPlayerController? PlayerToKick { get; set; }
+    public CsTeam Team { get; set; }
+    public CCSPlayerController? VipToSwitch { get; set; }
+}
+
 public class ReservedSlots : BasePlugin
 {
     public override string ModuleName => "ReservedSlots";
     public override string ModuleAuthor => "unfortunate";
-    public override string ModuleVersion => "1.0.1";
-
+    public override string ModuleVersion => "1.0.2";
     public int MaxPlayers = 10;
+    public Queue<ReservedQueueInfo> ReservedQueue = new Queue<ReservedQueueInfo>();
+
+    public override void Load(bool hotReload)
+    {
+        ReservedQueue.Clear();
+    }
 
     #region Commands
     [RequiresPermissions("@css/ban")]
@@ -25,28 +37,37 @@ public class ReservedSlots : BasePlugin
     {
         if (player == null)
             return;
-        
+
         if (!AdminManager.PlayerHasPermissions(player, "@css/vip"))
         {
             player.PrintToChat(Localizer["VipIsNeeded"]);
             return;
         }
-        
-        if (GetPlayersCount() <= MaxPlayers) {
+
+        if (GetPlayersCount() <= MaxPlayers)
+        {
             player.PrintToChat(Localizer["NotFull"]);
             return;
         }
 
-        if (player.TeamNum != 1) {
+        if (player.TeamNum != 1)
+        {
             player.PrintToChat(Localizer["SpectatorsOnly"]);
             return;
         }
 
-        var kickedPlayer = GetPlayerToKick(player);
-        if (kickedPlayer != null)
-        {
-            Server.ExecuteCommand($"kickid {kickedPlayer.UserId}");
-        }
+        CCSPlayerController playerToKick = GetPlayerToKick(player);
+        player.PrintToChat(Localizer["WillFreeSpace", playerToKick.PlayerName]);
+        playerToKick.PrintToChat(Localizer["WillBeKicked"]);
+
+        ReservedQueue.Enqueue(
+            new ReservedQueueInfo
+            {
+                PlayerToKick = playerToKick,
+                Team = (CsTeam)playerToKick.TeamNum,
+                VipToSwitch = player
+            }
+        );
     }
     #endregion
 
@@ -77,11 +98,19 @@ public class ReservedSlots : BasePlugin
                     && !AdminManager.PlayerHasPermissions(player, "@css/ban")
                 )
                 {
-                    var kickedPlayer = GetPlayerToKick(player);
-                    if (kickedPlayer != null)
-                    {
-                        Server.ExecuteCommand($"kickid {kickedPlayer.UserId}");
-                    }
+                    player.ChangeTeam(CsTeam.Spectator);
+                    CCSPlayerController playerToKick = GetPlayerToKick(player);
+                    player.PrintToChat(Localizer["WillFreeSpace", playerToKick.PlayerName]);
+                    playerToKick.PrintToChat(Localizer["WillBeKicked"]);
+
+                    ReservedQueue.Enqueue(
+                        new ReservedQueueInfo
+                        {
+                            PlayerToKick = playerToKick,
+                            Team = (CsTeam)playerToKick.TeamNum,
+                            VipToSwitch = player
+                        }
+                    );
                 }
                 else if (AdminManager.PlayerHasPermissions(player, "@css/ban"))
                 {
@@ -91,6 +120,60 @@ public class ReservedSlots : BasePlugin
                 else
                 {
                     Server.ExecuteCommand($"kickid {player.UserId}");
+                }
+            },
+            TimerFlags.STOP_ON_MAPCHANGE
+        );
+
+        return HookResult.Continue;
+    }
+
+    [GameEventHandler(HookMode.Pre)]
+    public HookResult OnPlayerDisconnect(EventPlayerDisconnect @event, GameEventInfo info)
+    {
+        foreach (var reservedQueue in ReservedQueue.ToList())
+        {
+            var disconnectedPlayer = @event.Userid;
+
+            if (disconnectedPlayer == reservedQueue.PlayerToKick)
+            {
+                ReservedQueue.Dequeue();
+                reservedQueue.VipToSwitch.ChangeTeam(reservedQueue.Team);
+            }
+            else if (disconnectedPlayer == reservedQueue.VipToSwitch)
+            {
+                ReservedQueue.Dequeue();
+                reservedQueue.PlayerToKick.PrintToChat(
+                    Localizer["Saved", reservedQueue.VipToSwitch.PlayerName]
+                );
+            }
+            else if (disconnectedPlayer.TeamNum > 1)
+            {
+                ReservedQueue.Dequeue();
+                reservedQueue.VipToSwitch.ChangeTeam((CsTeam)disconnectedPlayer.TeamNum);
+                reservedQueue.PlayerToKick.PrintToChat(
+                    Localizer["Saved", disconnectedPlayer.PlayerName]
+                );
+            }
+        }
+        return HookResult.Continue;
+    }
+
+    [GameEventHandler(HookMode.Pre)]
+    public HookResult OnRoundEnd(EventRoundEnd @event, GameEventInfo info)
+    {
+        if (ReservedQueue.Count < 1)
+            return HookResult.Continue;
+
+        AddTimer(
+            1.0f,
+            () =>
+            {
+                while (ReservedQueue.Count > 0)
+                {
+                    ReservedQueueInfo reservedQueue = ReservedQueue.Dequeue();
+                    Server.ExecuteCommand($"kickid {reservedQueue.PlayerToKick.UserId}");
+                    reservedQueue.VipToSwitch.ChangeTeam(reservedQueue.Team);
                 }
             },
             TimerFlags.STOP_ON_MAPCHANGE
