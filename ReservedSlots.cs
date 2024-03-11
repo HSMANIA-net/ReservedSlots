@@ -7,6 +7,7 @@ using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging
 
 namespace ReservedSlots;
 
@@ -21,7 +22,7 @@ public class ReservedSlots : BasePlugin
 {
     public override string ModuleName => "ReservedSlots";
     public override string ModuleAuthor => "unfortunate";
-    public override string ModuleVersion => "1.0.2";
+    public override string ModuleVersion => "1.0.3";
     public int MaxPlayers = 10;
     public Queue<ReservedQueueInfo> ReservedQueue = new Queue<ReservedQueueInfo>();
 
@@ -41,24 +42,29 @@ public class ReservedSlots : BasePlugin
         if (!AdminManager.PlayerHasPermissions(player, "@css/vip"))
         {
             player.PrintToChat(Localizer["VipIsNeeded"]);
+            Logger.LogInformation($"[!slot] {player.PlayerName} does not have VIP access");
             return;
         }
 
         if (GetPlayersCount() <= MaxPlayers)
         {
             player.PrintToChat(Localizer["NotFull"]);
+            Logger.LogInformation($"[!slot] {player.PlayerName} used at non-full server");
             return;
         }
 
         if (player.TeamNum != 1)
         {
             player.PrintToChat(Localizer["SpectatorsOnly"]);
+            Logger.LogInformation($"[!slot] {player.PlayerName} is not spectator");
             return;
         }
 
         CCSPlayerController playerToKick = GetPlayerToKick(player);
         player.PrintToChat(Localizer["WillFreeSpace", playerToKick.PlayerName]);
         playerToKick.PrintToChat(Localizer["WillBeKicked"]);
+        
+        Logger.LogInformation($"[!slot] {player.PlayerName} will kick {playerToKick.PlayerName}");
 
         ReservedQueue.Enqueue(
             new ReservedQueueInfo
@@ -102,6 +108,7 @@ public class ReservedSlots : BasePlugin
                     CCSPlayerController playerToKick = GetPlayerToKick(player);
                     player.PrintToChat(Localizer["WillFreeSpace", playerToKick.PlayerName]);
                     playerToKick.PrintToChat(Localizer["WillBeKicked"]);
+                    Logger.LogInformation($"[Connect] {player.PlayerName} will kick {playerToKick.PlayerName}");
 
                     ReservedQueue.Enqueue(
                         new ReservedQueueInfo
@@ -116,10 +123,12 @@ public class ReservedSlots : BasePlugin
                 {
                     player.ChangeTeam(CsTeam.Spectator);
                     player.PrintToChat(Localizer["SwitchedToSpec"]);
+                    Logger.LogInformation($"[Connect] {player.PlayerName} switched to spectators");
                 }
                 else
                 {
                     Server.ExecuteCommand($"kickid {player.UserId}");
+                    Logger.LogInformation($"[Connect] {player.PlayerName} got kicked (NOT VIP)");
                 }
             },
             TimerFlags.STOP_ON_MAPCHANGE
@@ -139,6 +148,8 @@ public class ReservedSlots : BasePlugin
             {
                 ReservedQueue.Dequeue();
                 reservedQueue.VipToSwitch.ChangeTeam(reservedQueue.Team);
+                Logger.LogInformation($"[Disconnect] {disconnectedPlayer.PlayerName} was PlayerToKick");
+                Logger.LogInformation($"[Disconnect] {VipToSwitch.PlayerName} has been switched to {(CsTeam)reservedQueue.Team}");
             }
             else if (disconnectedPlayer == reservedQueue.VipToSwitch)
             {
@@ -146,6 +157,7 @@ public class ReservedSlots : BasePlugin
                 reservedQueue.PlayerToKick.PrintToChat(
                     Localizer["Saved", reservedQueue.VipToSwitch.PlayerName]
                 );
+                Logger.LogInformation($"[Disconnect] {VipToSwitch.PlayerName} disconnected, saved {PlayerToKick.PlayerName}");
             }
             else if (disconnectedPlayer.TeamNum > 1)
             {
@@ -154,6 +166,9 @@ public class ReservedSlots : BasePlugin
                 reservedQueue.PlayerToKick.PrintToChat(
                     Localizer["Saved", disconnectedPlayer.PlayerName]
                 );
+                
+                Logger.LogInformation($"[Disconnect] {disconnectedPlayer.PlayerName} disconnected, saved {PlayerToKick.PlayerName}");
+                Logger.LogInformation($"[Disconnect] {VipToSwitch.PlayerName} has been switched to {(CsTeam)disconnectedPlayer.Team}");
             }
         }
         return HookResult.Continue;
@@ -173,7 +188,9 @@ public class ReservedSlots : BasePlugin
                 {
                     ReservedQueueInfo reservedQueue = ReservedQueue.Dequeue();
                     Server.ExecuteCommand($"kickid {reservedQueue.PlayerToKick.UserId}");
+                    Logger.LogInformation($"[OnRoundEnd] {PlayerToKick.PlayerName} has been kicked");
                     reservedQueue.VipToSwitch.ChangeTeam(reservedQueue.Team);
+                    Logger.LogInformation($"[OnRoundEnd] {VipToSwitch.PlayerName} has been switched to {(CsTeam)reservedQueue.Team}");
                 }
             },
             TimerFlags.STOP_ON_MAPCHANGE
@@ -196,6 +213,7 @@ public class ReservedSlots : BasePlugin
                 && p != client
                 && !AdminManager.PlayerHasPermissions(p, "@css/ban")
                 && !AdminManager.PlayerHasPermissions(p, "@css/vip")
+                && !IsInQueue(p)
             )
             .Select(player => (player, (int)player.Ping, player.Score))
             .ToList();
@@ -220,6 +238,22 @@ public class ReservedSlots : BasePlugin
                 && p.SteamID.ToString().Length == 17
             )
             .Count();
+    }
+
+    private bool IsInQueue(CCSPlayerController Player)
+    {
+        if (ReservedQueue.Count < 1)
+            return false;
+
+        foreach (var reservedQueue in ReservedQueue.ToList())
+        {
+            if (Player == reservedQueue.PlayerToKick)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
     #endregion
 }
