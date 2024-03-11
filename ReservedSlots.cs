@@ -63,7 +63,7 @@ public class ReservedSlots : BasePlugin
         CCSPlayerController playerToKick = GetPlayerToKick(player);
         player.PrintToChat(Localizer["WillFreeSpace", playerToKick.PlayerName]);
         playerToKick.PrintToChat(Localizer["WillBeKicked"]);
-        
+
         Logger.LogInformation($"[!slot] {player.PlayerName} will kick {playerToKick.PlayerName}");
 
         ReservedQueue.Enqueue(
@@ -108,7 +108,9 @@ public class ReservedSlots : BasePlugin
                     CCSPlayerController playerToKick = GetPlayerToKick(player);
                     player.PrintToChat(Localizer["WillFreeSpace", playerToKick.PlayerName]);
                     playerToKick.PrintToChat(Localizer["WillBeKicked"]);
-                    Logger.LogInformation($"[Connect] {player.PlayerName} will kick {playerToKick.PlayerName}");
+                    Logger.LogInformation(
+                        $"[Connect] {player.PlayerName} will kick {playerToKick.PlayerName}"
+                    );
 
                     ReservedQueue.Enqueue(
                         new ReservedQueueInfo
@@ -148,8 +150,12 @@ public class ReservedSlots : BasePlugin
             {
                 ReservedQueue.Dequeue();
                 reservedQueue.VipToSwitch.ChangeTeam(reservedQueue.Team);
-                Logger.LogInformation($"[Disconnect] {disconnectedPlayer.PlayerName} was PlayerToKick");
-                Logger.LogInformation($"[Disconnect] {reservedQueue.VipToSwitch.PlayerName} has been switched to {(CsTeam)reservedQueue.Team}");
+                Logger.LogInformation(
+                    $"[Disconnect] {disconnectedPlayer.PlayerName} was PlayerToKick"
+                );
+                Logger.LogInformation(
+                    $"[Disconnect] {reservedQueue.VipToSwitch.PlayerName} has been switched to {(CsTeam)reservedQueue.Team}"
+                );
             }
             else if (disconnectedPlayer == reservedQueue.VipToSwitch)
             {
@@ -157,7 +163,9 @@ public class ReservedSlots : BasePlugin
                 reservedQueue.PlayerToKick.PrintToChat(
                     Localizer["Saved", reservedQueue.VipToSwitch.PlayerName]
                 );
-                Logger.LogInformation($"[Disconnect] {reservedQueue.VipToSwitch.PlayerName} disconnected, saved {reservedQueue.PlayerToKick.PlayerName}");
+                Logger.LogInformation(
+                    $"[Disconnect] {reservedQueue.VipToSwitch.PlayerName} disconnected, saved {reservedQueue.PlayerToKick.PlayerName}"
+                );
             }
             else if (disconnectedPlayer.TeamNum > 1)
             {
@@ -166,9 +174,13 @@ public class ReservedSlots : BasePlugin
                 reservedQueue.PlayerToKick.PrintToChat(
                     Localizer["Saved", disconnectedPlayer.PlayerName]
                 );
-                
-                Logger.LogInformation($"[Disconnect] {disconnectedPlayer.PlayerName} disconnected, saved {reservedQueue.PlayerToKick.PlayerName}");
-                Logger.LogInformation($"[Disconnect] {reservedQueue.VipToSwitch.PlayerName} has been switched to {(CsTeam)disconnectedPlayer.Team}");
+
+                Logger.LogInformation(
+                    $"[Disconnect] {disconnectedPlayer.PlayerName} disconnected, saved {reservedQueue.PlayerToKick.PlayerName}"
+                );
+                Logger.LogInformation(
+                    $"[Disconnect] {reservedQueue.VipToSwitch.PlayerName} has been switched to {(CsTeam)disconnectedPlayer.Team}"
+                );
             }
         }
         return HookResult.Continue;
@@ -188,9 +200,13 @@ public class ReservedSlots : BasePlugin
                 {
                     ReservedQueueInfo reservedQueue = ReservedQueue.Dequeue();
                     Server.ExecuteCommand($"kickid {reservedQueue.PlayerToKick.UserId}");
-                    Logger.LogInformation($"[OnRoundEnd] {reservedQueue.PlayerToKick.PlayerName} has been kicked");
+                    Logger.LogInformation(
+                        $"[OnRoundEnd] {reservedQueue.PlayerToKick.PlayerName} has been kicked"
+                    );
                     reservedQueue.VipToSwitch.ChangeTeam(reservedQueue.Team);
-                    Logger.LogInformation($"[OnRoundEnd] {reservedQueue.VipToSwitch.PlayerName} has been switched to {(CsTeam)reservedQueue.Team}");
+                    Logger.LogInformation(
+                        $"[OnRoundEnd] {reservedQueue.VipToSwitch.PlayerName} has been switched to {(CsTeam)reservedQueue.Team}"
+                    );
                 }
             },
             TimerFlags.STOP_ON_MAPCHANGE
