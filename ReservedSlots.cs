@@ -7,7 +7,7 @@ using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
 using Microsoft.Extensions.Localization;
-using Microsoft.Extensions.Logging
+using Microsoft.Extensions.Logging;
 
 namespace ReservedSlots;
 
@@ -149,7 +149,7 @@ public class ReservedSlots : BasePlugin
                 ReservedQueue.Dequeue();
                 reservedQueue.VipToSwitch.ChangeTeam(reservedQueue.Team);
                 Logger.LogInformation($"[Disconnect] {disconnectedPlayer.PlayerName} was PlayerToKick");
-                Logger.LogInformation($"[Disconnect] {VipToSwitch.PlayerName} has been switched to {(CsTeam)reservedQueue.Team}");
+                Logger.LogInformation($"[Disconnect] {reservedQueue.VipToSwitch.PlayerName} has been switched to {(CsTeam)reservedQueue.Team}");
             }
             else if (disconnectedPlayer == reservedQueue.VipToSwitch)
             {
@@ -157,7 +157,7 @@ public class ReservedSlots : BasePlugin
                 reservedQueue.PlayerToKick.PrintToChat(
                     Localizer["Saved", reservedQueue.VipToSwitch.PlayerName]
                 );
-                Logger.LogInformation($"[Disconnect] {VipToSwitch.PlayerName} disconnected, saved {PlayerToKick.PlayerName}");
+                Logger.LogInformation($"[Disconnect] {reservedQueue.VipToSwitch.PlayerName} disconnected, saved {reservedQueue.PlayerToKick.PlayerName}");
             }
             else if (disconnectedPlayer.TeamNum > 1)
             {
@@ -167,8 +167,8 @@ public class ReservedSlots : BasePlugin
                     Localizer["Saved", disconnectedPlayer.PlayerName]
                 );
                 
-                Logger.LogInformation($"[Disconnect] {disconnectedPlayer.PlayerName} disconnected, saved {PlayerToKick.PlayerName}");
-                Logger.LogInformation($"[Disconnect] {VipToSwitch.PlayerName} has been switched to {(CsTeam)disconnectedPlayer.Team}");
+                Logger.LogInformation($"[Disconnect] {disconnectedPlayer.PlayerName} disconnected, saved {reservedQueue.PlayerToKick.PlayerName}");
+                Logger.LogInformation($"[Disconnect] {reservedQueue.VipToSwitch.PlayerName} has been switched to {(CsTeam)disconnectedPlayer.Team}");
             }
         }
         return HookResult.Continue;
@@ -188,9 +188,9 @@ public class ReservedSlots : BasePlugin
                 {
                     ReservedQueueInfo reservedQueue = ReservedQueue.Dequeue();
                     Server.ExecuteCommand($"kickid {reservedQueue.PlayerToKick.UserId}");
-                    Logger.LogInformation($"[OnRoundEnd] {PlayerToKick.PlayerName} has been kicked");
+                    Logger.LogInformation($"[OnRoundEnd] {reservedQueue.PlayerToKick.PlayerName} has been kicked");
                     reservedQueue.VipToSwitch.ChangeTeam(reservedQueue.Team);
-                    Logger.LogInformation($"[OnRoundEnd] {VipToSwitch.PlayerName} has been switched to {(CsTeam)reservedQueue.Team}");
+                    Logger.LogInformation($"[OnRoundEnd] {reservedQueue.VipToSwitch.PlayerName} has been switched to {(CsTeam)reservedQueue.Team}");
                 }
             },
             TimerFlags.STOP_ON_MAPCHANGE
