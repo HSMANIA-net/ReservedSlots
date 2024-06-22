@@ -5,5 +5,6 @@
   "SwitchedToSpec": "Zostałeś przeniesiony do obserwatorów. Jeśli posiadasz aktywną rangę \u0004VIP\u0001 skorzystaj z komendy \u0006!slot\u0001, aby zwolnić grające miejsce.",
   "WillFreeSpace": " \u0007{0} zwolni grające miejsce z końcem obecnej rundy, dziękujemy że wspierasz nasz projekt!",
   "WillBeKicked": " \u0007Zostaniesz wyrzucony wraz z końcem tej rundy, aby zwolnić grające miejsce dla gracza VIP.\u2029Wesprzyj nasze serwery, aby w przyszłości uchronić się przed wyrzuceniem!\u2029https://hsownia.sklepcs.pl",
-  "Saved": " \u0007Gracz {0} opuścił serwer i uchronił cię przed wyrzuceniem.\u2029Uchroń się przed wyrzuceniami wspierając nasze serwery!\u2029https://hsownia.sklepcs.pl"
+  "Saved": " \u0007Gracz {0} opuścił serwer i uchronił cię przed wyrzuceniem.\u2029Uchroń się przed wyrzuceniami wspierając nasze serwery!\u2029https://hsownia.sklepcs.pl",
+  "ServerIsFull": " \u0007Ten serwer jest pełny VIPów, odwiedź nasze inne serwery, wejdź na https://hsmania.net"
 }

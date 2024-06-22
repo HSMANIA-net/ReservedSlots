@@ -5,5 +5,6 @@
   "SwitchedToSpec": "You have been switched to spectators. If you have active \u0004VIP\u0001 use \u0006!slot\u0001 command to free up playing space.",
   "WillFreeSpace": " \u0007{0} will free playing space for you after this round, thank you for supporting our servers!",
   "WillBeKicked": " \u0007You will be kicked after this round to free playing space for VIP.\u2029Support our servers to defend yourself from being kicked!\u2029https://hsownia.sklepcs.pl",
-  "Saved": " \u0007{0} left and saved you from getting kicked.\u2029Defend yourself from being kicked by supporting our servers!\u2029https://hsownia.sklepcs.pl"
+  "Saved": " \u0007{0} left and saved you from getting kicked.\u2029Defend yourself from being kicked by supporting our servers!\u2029https://hsownia.sklepcs.pl",
+  "ServerIsFull": " \u0007This server is full of VIPs, check out our different servers, visit https://hsmania.net"
 }
