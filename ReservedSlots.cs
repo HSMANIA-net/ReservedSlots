@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
@@ -6,7 +5,6 @@ using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace ReservedSlots;
@@ -22,7 +20,7 @@ public class ReservedSlots : BasePlugin
 {
     public override string ModuleName => "ReservedSlots";
     public override string ModuleAuthor => "unfortunate";
-    public override string ModuleVersion => "1.0.4";
+    public override string ModuleVersion => "1.0.5";
     public int MaxPlayers = 10;
     public Queue<ReservedQueueInfo> ReservedQueue = new Queue<ReservedQueueInfo>();
 
@@ -61,14 +59,15 @@ public class ReservedSlots : BasePlugin
         }
 
         CCSPlayerController playerToKick = GetPlayerToKick(player);
+
         if (playerToKick == null)
         {
             player.PrintToChat(Localizer["ServerIsFull"]);
             return;
         }
+
         player.PrintToChat(Localizer["WillFreeSpace", playerToKick.PlayerName]);
         playerToKick.PrintToChat(Localizer["WillBeKicked"]);
-
         Logger.LogInformation($"[!slot] {player.PlayerName} will kick {playerToKick.PlayerName}");
 
         ReservedQueue.Enqueue(
@@ -88,13 +87,7 @@ public class ReservedSlots : BasePlugin
     {
         var player = @event.Userid;
 
-        if (
-            player!.IsHLTV
-            || player == null
-            || !player.IsValid
-            || player.Connected != PlayerConnectedState.PlayerConnected
-            || player.SteamID.ToString().Length != 17
-        )
+        if (!IsPlayerValid(player))
             return HookResult.Continue;
 
         if (GetPlayersCount() <= MaxPlayers)
@@ -109,7 +102,7 @@ public class ReservedSlots : BasePlugin
                     && !AdminManager.PlayerHasPermissions(player, "@css/ban")
                 )
                 {
-                    player.ChangeTeam(CsTeam.Spectator);
+                    player!.ChangeTeam(CsTeam.Spectator);
                     CCSPlayerController playerToKick = GetPlayerToKick(player);
 
                     if (playerToKick == null)
@@ -135,13 +128,13 @@ public class ReservedSlots : BasePlugin
                 }
                 else if (AdminManager.PlayerHasPermissions(player, "@css/ban"))
                 {
-                    player.ChangeTeam(CsTeam.Spectator);
+                    player!.ChangeTeam(CsTeam.Spectator);
                     player.PrintToChat(Localizer["SwitchedToSpec"]);
                     Logger.LogInformation($"[Connect] {player.PlayerName} switched to spectators");
                 }
                 else
                 {
-                    Server.ExecuteCommand($"kickid {player.UserId}");
+                    Server.ExecuteCommand($"kickid {player!.UserId}");
                     Logger.LogInformation($"[Connect] {player.PlayerName} got kicked (NOT VIP)");
                 }
             },
@@ -157,6 +150,8 @@ public class ReservedSlots : BasePlugin
         foreach (var reservedQueue in ReservedQueue.ToList())
         {
             var disconnectedPlayer = @event.Userid;
+            if (disconnectedPlayer!.IsBot)
+                return HookResult.Continue;
 
             if (disconnectedPlayer == reservedQueue.PlayerToKick)
             {
@@ -195,6 +190,7 @@ public class ReservedSlots : BasePlugin
                 );
             }
         }
+
         return HookResult.Continue;
     }
 
@@ -229,15 +225,24 @@ public class ReservedSlots : BasePlugin
     #endregion
 
     #region Functions
+    public static bool IsPlayerValid(CCSPlayerController? player)
+    {
+        return player != null
+            && player.IsValid
+            && player.Pawn != null
+            && player.Pawn.IsValid
+            && player.Connected == PlayerConnectedState.PlayerConnected
+            && !player.IsHLTV
+            && !player.IsBot;
+    }
+
     private CCSPlayerController GetPlayerToKick(CCSPlayerController client)
     {
         var allPlayers = Utilities.GetPlayers();
         var playersList = allPlayers
             .Where(p =>
-                p.IsValid
-                && !p.IsHLTV
-                && p.Connected == PlayerConnectedState.PlayerConnected
-                && p.SteamID.ToString().Length == 17
+                IsPlayerValid(p)
+                && p.TeamNum > 0
                 && p != client
                 && !AdminManager.PlayerHasPermissions(p, "@css/ban")
                 && !AdminManager.PlayerHasPermissions(p, "@css/vip")
@@ -256,23 +261,11 @@ public class ReservedSlots : BasePlugin
 
     private static int GetPlayersCount()
     {
-        return Utilities
-            .GetPlayers()
-            .Where(p =>
-                p.IsValid
-                && !p.IsHLTV
-                && !p.IsBot
-                && p.Connected == PlayerConnectedState.PlayerConnected
-                && p.SteamID.ToString().Length == 17
-            )
-            .Count();
+        return Utilities.GetPlayers().Where(IsPlayerValid).Count();
     }
 
     private bool IsInQueue(CCSPlayerController Player)
     {
-        if (ReservedQueue.Count < 1)
-            return false;
-
         foreach (var reservedQueue in ReservedQueue.ToList())
         {
             if (Player == reservedQueue.PlayerToKick)
