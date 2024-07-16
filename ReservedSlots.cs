@@ -151,7 +151,11 @@ public class ReservedSlots : BasePlugin
         {
             var disconnectedPlayer = @event.Userid;
             if (disconnectedPlayer!.IsBot)
+            {
+                ReservedQueue.Dequeue();
+                reservedQueue.VipToSwitch!.ChangeTeam((CsTeam)disconnectedPlayer.TeamNum);
                 return HookResult.Continue;
+            }
 
             if (disconnectedPlayer == reservedQueue.PlayerToKick)
             {
